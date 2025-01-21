@@ -1,31 +1,33 @@
 <template>
   <div v-if="recommendations.length" class="mt-6">
-    <h2 class="text-xl font-semibold text-gray-800 mb-4">Top Recommendations</h2>
-    <ul class="space-y-4">
-      <li
+    <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Top Recommendations</h2>
+    <!-- Grid Layout -->
+    <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div
         v-for="(rec, index) in recommendations"
         :key="index"
-        class="flex items-center p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-105"
+        class="bg-white rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-105 p-4"
       >
-        <a :href="rec.url" target="_blank" class="flex-shrink-0">
+        <a :href="rec.url" target="_blank" class="block">
+          <!-- Image -->
           <img
             :src="rec.image_url"
             alt="Recommended Image"
-            class="w-24 h-24 rounded-lg object-cover"
+            class="w-full h-48 object-cover rounded-md"
           />
         </a>
-        <div class="ml-4">
+        <!-- Metadata -->
+        <div class="mt-2 text-center">
           <p class="font-semibold text-gray-800">{{ rec.filename }}</p>
           <p class="text-sm text-gray-600">Similarity: {{ rec.similarity.toFixed(4) }}</p>
         </div>
-      </li>
-    </ul>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
-  props: ["recommendations"], 
+  props: ["recommendations"], // Props for recommendations
 };
 </script>
-
