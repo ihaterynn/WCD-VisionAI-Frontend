@@ -60,7 +60,7 @@
             <p class="font-semibold text-gray-800">{{ rec.filename }}</p>
             <p class="text-sm text-gray-600">Similarity: {{ rec.similarity.toFixed(4) }}</p>
             <p v-if="rec.url">
-              <a :href="rec.url" target="_blank" class="text-blue-600 underline">View Product</a>
+              <a :href="rec.url" target="_blank" class="text-blue-600">View Product</a>
             </p>
           </div>
         </div>
