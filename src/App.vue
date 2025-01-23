@@ -79,7 +79,7 @@ export default {
   },
   data() {
     return {
-      backendUrl: "http://127.0.0.1:5000", // Backend server URL
+      backendUrl: "http://127.0.0.1:8000", // Backend server URL
       uploadedFile: null,
       recommendations: [], 
       bgImage, 
