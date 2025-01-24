@@ -43,13 +43,13 @@
 
 <script>
 import FileUpload from "./components/FileUpload.vue";
-import RecommendationList from "./components/RecommendationList.vue"; // Import the RecommendationList component
+import RecommendationList from "./components/RecommendationList.vue"; 
 import bgImage from "@/assets/bg1.jpg";
 
 export default {
   components: {
     FileUpload,
-    RecommendationList, // Register RecommendationList here
+    RecommendationList, 
   },
   data() {
     return {

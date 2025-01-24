@@ -19,7 +19,7 @@
           <!-- Metadata -->
         <div class="mt-2 text-center">
           <p class="font-semibold text-gray-800">{{ rec.filename }}</p>
-          <p class="font-size: 15px text-gray-600 mb-2">Similarity: {{ rec.similarity.toFixed(4) }}</p> <!-- Increased the font size here -->
+          <p class="font-size: 15px text-gray-600 mb-2">Similarity: {{ rec.similarity.toFixed(4) }}</p> 
           <p v-if="rec.url" class="mt-2">
             <a :href="rec.url" target="_blank" class="text-blue-600">View Product</a>
           </p>
@@ -31,6 +31,6 @@
 
 <script>
 export default {
-  props: ["recommendations"], // Props for recommendations
+  props: ["recommendations"], 
 };
 </script>
