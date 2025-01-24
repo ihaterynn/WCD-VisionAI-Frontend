@@ -1,6 +1,5 @@
 <template>
   <div v-if="recommendations.length" class="mt-6">
-    <h2 class="text-xl font-semibold text-gray-800 mb-4 text-center">Top Recommendations</h2>
     <!-- Grid Layout -->
     <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       <div
@@ -13,13 +12,17 @@
           <img
             :src="rec.image_url"
             alt="Recommended Image"
-            class="w-full h-48 object-cover rounded-md"
+            class="w-full object-cover rounded-md"
+            style="height: 225px;" 
           />
         </a>
-        <!-- Metadata -->
+          <!-- Metadata -->
         <div class="mt-2 text-center">
           <p class="font-semibold text-gray-800">{{ rec.filename }}</p>
-          <p class="text-sm text-gray-600">Similarity: {{ rec.similarity.toFixed(4) }}</p>
+          <p class="font-size: 15px text-gray-600 mb-2">Similarity: {{ rec.similarity.toFixed(4) }}</p> <!-- Increased the font size here -->
+          <p v-if="rec.url" class="mt-2">
+            <a :href="rec.url" target="_blank" class="text-blue-600">View Product</a>
+          </p>
         </div>
       </div>
     </div>
