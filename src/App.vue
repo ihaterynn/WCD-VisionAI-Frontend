@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col">
+  <div class="min-h-screen flex flex-col" id="content-to-export">
     <!-- Top Section with Background -->
     <div
       class="relative h-[70vh] bg-cover bg-center"
@@ -37,26 +37,31 @@
       <h2 class="font-bold text-gray-800 mb-5 text-center" style="font-size: 30px;">Recommended For You</h2>
       <!-- Add the RecommendationList component here -->
       <RecommendationList :recommendations="recommendations" />
+
+      <!-- Import and use the ExportToPDF component -->
+      <ExportToPDF :recommendations="recommendations" />
     </div>
   </div>
 </template>
 
 <script>
 import FileUpload from "./components/FileUpload.vue";
-import RecommendationList from "./components/RecommendationList.vue"; 
+import RecommendationList from "./components/RecommendationList.vue";
+import ExportToPDF from "./components/ExportToPDF.vue";
 import bgImage from "@/assets/bg1.jpg";
 
 export default {
   components: {
     FileUpload,
-    RecommendationList, 
+    RecommendationList,
+    ExportToPDF, 
   },
   data() {
     return {
       backendUrl: "http://127.0.0.1:8000", // Backend server URL
       uploadedFile: null,
-      recommendations: [], 
-      bgImage, 
+      recommendations: [],
+      bgImage,
     };
   },
   methods: {
