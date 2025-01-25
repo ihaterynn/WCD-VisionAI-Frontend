@@ -4,3 +4,5 @@ postcss==8.x.x
 autoprefixer==10.x.x
 vite==4.x.x
 vercel
+jspdf
+html2pdf.js
