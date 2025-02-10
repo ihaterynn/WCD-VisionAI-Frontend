@@ -25,7 +25,7 @@
     methods: {
         submitFilename() {
         if (this.filename.trim()) {
-            console.log("Submitting filename:", this.filename);  // Add this for debugging
+            console.log("Submitting filename:", this.filename);  
             this.$emit("product-name-submitted", this.filename.trim());
         } else {
             alert("Please enter a valid product name.");

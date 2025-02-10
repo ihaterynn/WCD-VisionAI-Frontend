@@ -67,7 +67,7 @@ export default {
         );
 
         if (response.data.recommendations) {
-          this.$emit("recommendations-received", response.data.recommendations); // Emit event to send recommendations back to parent
+          this.$emit("recommendations-received", response.data.recommendations); 
         } else {
           this.error = "No recommendations received.";
         }
