@@ -35,6 +35,8 @@
     <!-- Bottom Section with Recommendations -->
     <div class="p-6 bg-green-50">
       <h2 class="font-bold text-gray-800 mb-5 text-center" style="font-size: 30px;">Recommended For You</h2>
+       <!-- Import and use the ExportToPDF component -->
+       <ExportToPDF :recommendations="recommendations" />
       <RecommendationList :recommendations="recommendations" />
     </div>
 
@@ -47,6 +49,7 @@
 import axios from "axios"; 
 import FileUpload from "./components/FileUpload.vue";
 import RecommendationList from "./components/RecommendationList.vue";
+import ExportToPDF from "./components/ExportToPDF.vue";
 import ProductNameInput from "./components/ProductNameInput.vue";
 import ImageCropper from "./components/ImageCropper.vue"; 
 import bgImage from "@/assets/bg1.jpg";
@@ -55,7 +58,9 @@ export default {
   components: {
     FileUpload,
     RecommendationList,
+    ExportToPDF,
     ProductNameInput,
+  
     ImageCropper,
   },
   data() {
