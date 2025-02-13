@@ -4,30 +4,25 @@
     <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       <div
         v-for="(rec, index) in recommendations"
-        :key="rec.filename" 
-        class="bg-white rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-105 p-4"
+        :key="rec.filename"
+        class="bg-white rounded-lg shadow-md hover:shadow-lg transition-transform transform hover:scale-105 p-4 h-100 flex flex-col"
       >
-        <a :href="rec.url" target="_blank" class="block">
+        <!-- Image Container with fixed height -->
+        <a :href="rec.url" target="_blank" class="block h-60">   <!-- edit image Container height -->
           <img
-            :src="rec.image_url"
+            :src="rec.image_url" 
             alt="Recommended Image"
             class="w-full h-full object-cover rounded-md"
           />
         </a>
 
-        <!-- Metadata -->
-        <div class="mt-2 text-center">
+        <!-- Metadata displayed in the desired order -->
+        <div class="mt-2 text-center flex-grow flex flex-col justify-center">
           <p class="font-semibold text-gray-800">{{ rec.filename }}</p>
-          <p class="text-sm text-gray-600 mb-2">Similarity: {{ rec.similarity.toFixed(4) }}%</p>
-          
-          <!-- Display inventory count -->
-          <p v-if="rec.inventory_count !== undefined" class="text-sm text-gray-600">
-            Inventory: {{ rec.inventory_count }}
-          </p>
-
-          <p v-if="rec.url" class="mt-2">
-            <a :href="rec.url" target="_blank" class="text-blue-600">Click To View Product</a>
-          </p>
+          <p class="text-sm text-gray-600">Product Type: {{ rec.Product_Type }}</p>
+          <p class="text-sm text-gray-600">UOM: {{ rec.UOM }}</p>
+          <p class="text-sm text-gray-600">Inventory: {{ rec.inventory_count }}</p>
+          <p class="text-sm text-gray-600">Similarity: {{ rec.similarity.toFixed(4) }}%</p>
         </div>
       </div>
     </div>
@@ -39,7 +34,7 @@ export default {
   props: {
     recommendations: {
       type: Array,
-      default: () => [],  
+      default: () => [],
     },
   },
 };
