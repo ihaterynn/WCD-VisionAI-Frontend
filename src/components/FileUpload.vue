@@ -29,7 +29,17 @@
 import axios from "axios";
 
 export default {
-  props: ["backendUrl"],
+  props: {
+    backendUrl: {
+      type: String,
+      required: true
+    },
+    // new prop to override the file with a cropped version
+    activeFile: {
+      type: Object,
+      default: null
+    }
+  },
   data() {
     return {
       file: null,
@@ -40,10 +50,12 @@ export default {
   methods: {
     handleFileUpload(event) {
       this.file = event.target.files[0];
-      this.$emit("file-uploaded", this.file); // Emit event to notify parent of the uploaded file
+      this.$emit("file-uploaded", this.file); // notify parent of the uploaded file
     },
     async submitForm() {
-      if (!this.file) {
+      // use the activeFile from props otherwise fall back to the originally uploaded file
+      const fileToUpload = this.activeFile ? this.activeFile : this.file;
+      if (!fileToUpload) {
         this.error = "Please select a file.";
         return;
       }
@@ -52,10 +64,9 @@ export default {
       this.error = null;
 
       const formData = new FormData();
-      formData.append("file", this.file);
+      formData.append("file", fileToUpload);
 
       try {
-        // Send the file to the backend and emit recommendations
         const response = await axios.post(
           `${this.backendUrl}/recommendations/`,
           formData,
@@ -67,7 +78,7 @@ export default {
         );
 
         if (response.data.recommendations) {
-          this.$emit("recommendations-received", response.data.recommendations); 
+          this.$emit("recommendations-received", response.data.recommendations);
         } else {
           this.error = "No recommendations received.";
         }
@@ -81,4 +92,3 @@ export default {
   },
 };
 </script>
-
