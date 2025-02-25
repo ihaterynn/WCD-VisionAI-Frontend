@@ -70,11 +70,12 @@
 </template>
 
 <script>
-import axios from "axios"; 
+import axios from "axios";
+import { BACKEND_URL } from './config.js';  
 import FileUpload from "./components/FileUpload.vue";
 import RecommendationList from "./components/RecommendationList.vue";
 import ProductNameInput from "./components/ProductNameInput.vue";
-import ImageCropper from "./components/ImageCropper.vue"; 
+import ImageCropper from "./components/ImageCropper.vue";
 import bgImage from "@/assets/bg1.jpg";
 
 export default {
@@ -86,9 +87,7 @@ export default {
   },
   data() {
     return {
-      backendUrl: window.location.hostname === "localhost" 
-        ? "http://127.0.0.1:8000" 
-        : "http://host.docker.internal:8000", 
+      backendUrl: BACKEND_URL, 
       uploadedFile: null,         
       imageFromFilename: null,  
       recommendations: [],
@@ -99,7 +98,7 @@ export default {
     };
   },
   methods: {
-    // when file is first uploaded, save s the active file
+    // When file is first uploaded, save as the active file
     handleFileUploaded(file) {
       this.imageFromFilename = null;
       this.activeFile = file;
