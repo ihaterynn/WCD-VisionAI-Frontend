@@ -1,27 +1,50 @@
 <template>
   <form @submit.prevent="submitForm" class="space-y-4">
     <!-- File Input and Submit Button in Flexbox -->
-    <div class="flex items-center space-x-4">
-      <input
-        type="file"
-        @change="handleFileUpload"
-        accept="image/*"
-        class="block text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-200 file:text-gray-900 hover:file:bg-gray-300"
-        required
-      />
+    <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-3 sm:space-y-0">
+      <div class="relative flex-grow group">
+        <input
+          type="file"
+          @change="handleFileUpload"
+          accept="image/*"
+          class="block w-full text-sm text-gray-900 
+                file:mr-4 file:py-2.5 file:px-4 
+                file:rounded-lg file:border-0 
+                file:text-sm file:font-medium 
+                file:bg-gradient-to-r file:from-blue-400 file:to-blue-500 
+                file:text-white file:transition-all file:duration-300
+                file:shadow-sm hover:file:shadow-md
+                file:cursor-pointer hover:file:bg-gradient-to-r hover:file:from-blue-500 hover:file:to-blue-600
+                focus:outline-none cursor-pointer"
+          required
+        />
+        <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-300 to-green-300 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+      </div>
+      
       <button
         type="submit"
         :disabled="isSubmitting"
-        class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50"
+        class="flex-shrink-0 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:hover:translate-y-0 focus:outline-none focus:ring-2 focus:ring-green-300"
       >
-        Search
+        <span class="flex items-center justify-center">
+          <svg v-if="isSubmitting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          {{ isSubmitting ? 'Searching...' : 'Search' }}
+        </span>
       </button>
     </div>
-
-    <!-- Error Message -->
-    <div v-if="error" class="text-red-600 font-bold">
-      {{ error }}
-    </div>
+    
+    <!-- Error Message with Animation -->
+    <transition name="fade">
+      <div v-if="error" class="text-red-600 font-medium bg-red-50 p-3 rounded-lg border-l-4 border-red-500 animate-pulse">
+        {{ error }}
+      </div>
+    </transition>
   </form>
 </template>
 
@@ -34,7 +57,7 @@ export default {
       type: String,
       required: true
     },
-    // new prop to override the file with a cropped version
+    // prop to override the file with a cropped version
     activeFile: {
       type: Object,
       default: null
@@ -59,13 +82,16 @@ export default {
         this.error = "Please select a file.";
         return;
       }
-
+      
       this.isSubmitting = true;
       this.error = null;
-
+      
+      // Show loading screen
+      this.$emit("loading", true, "Processing image...");
+      
       const formData = new FormData();
       formData.append("file", fileToUpload);
-
+      
       try {
         const response = await axios.post(
           `${this.backendUrl}/recommendations/`,
@@ -76,19 +102,36 @@ export default {
             },
           }
         );
-
-        if (response.data.recommendations) {
+        
+        if (response.data.recommendations && response.data.recommendations.length > 0) {
           this.$emit("recommendations-received", response.data.recommendations);
+          this.$emit("notify", "success", "Success!", `Found ${response.data.recommendations.length} recommendation(s)`);
         } else {
-          this.error = "No recommendations received.";
+          this.error = "No recommendations found for this image.";
+          this.$emit("notify", "warning", "No Results", "No recommendations were found for this image.");
         }
       } catch (err) {
         console.error(err);
         this.error = err.response?.data?.error || "Error during upload.";
+        this.$emit("notify", "error", "Error", this.error);
       } finally {
         this.isSubmitting = false;
+        // Hide loading screen
+        this.$emit("loading", false);
       }
     },
   },
 };
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+</style>
