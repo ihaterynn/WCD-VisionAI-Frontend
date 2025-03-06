@@ -5,9 +5,9 @@
         class="mt-6 transition-all duration-500 ease-in-out delay-300 space-y-4"
         :class="{'transform translate-y-0 opacity-100': isLoaded, 'transform translate-y-4 opacity-0': !isLoaded}"
       >
-        <!-- Custom flex layout for precise width control -->
+        <!-- Custom flex layout -->
         <div class="flex gap-3">
-          <!-- Sort Dropdown (slightly wider than before, but not too big) -->
+          <!-- Sort Dropdown -->
           <div style="width: 28%;">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sort By</label>
             <select 
@@ -20,7 +20,7 @@
             </select>
           </div>
           
-          <!-- Product Type Filter Dropdown (enough space for its content) -->
+          <!-- Product Type Filter Dropdown -->
           <div style="width: 37%;" class="relative dropdown-container" ref="productTypeDropdown">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filter Product Type(s)</label>
             <button 
@@ -42,7 +42,7 @@
               disabled
             >
               <option value="">Product Lines</option>
-              <!-- Will be implemented later -->
+              <!-- placeholder for now -->
             </select>
           </div>
         </div>
