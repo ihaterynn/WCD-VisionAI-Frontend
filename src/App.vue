@@ -62,21 +62,35 @@
             />
           </div>
 
-          <!-- Product Filtersg -->  
+          <!-- Product Filters -->  
           <div class="w-full mt-4">
-            <ProductFilters
-            :isLoaded="isLoaded"
-            :sortCriteria="sortCriteria"
-            :productTypeFilter="productTypeFilter"
-            :availableProductTypes="availableProductTypes"
-            @update:sortCriteria="sortCriteria = $event"
-            @update:productTypeFilter="productTypeFilter = $event"
-            @sort-change="sortRecommendations"
-            @filter-change="applyFilters"
-          />
+            <div class="filter-controls flex items-center">
+              <div class="flex-grow">
+                <ProductFilters
+                  :isLoaded="isLoaded"
+                  :sortCriteria="sortCriteria"
+                  :productTypeFilter="productTypeFilter"
+                  :availableProductTypes="availableProductTypes"
+                  @update:sortCriteria="sortCriteria = $event"
+                  @update:productTypeFilter="productTypeFilter = $event"
+                  @sort-change="sortRecommendations"
+                  @filter-change="applyFilters"
+                />
+              </div>
+              
+              <!-- Color Picker Filter Component -->
+              <div class="color-picker-button">
+                <ColorPickerFilter
+                  id="color-picker-button"
+                  @color-filter-change="handleColorFilterChange"
+                  :class="{'transform translate-y-0 opacity-100': isLoaded, 'transform translate-y-4 opacity-0': !isLoaded}"
+                  class="transition-all duration-500 ease-in-out delay-300"
+                />
+              </div>
+            </div>
           </div>
 
-          <!-- Display uploaded file or input image with animation -->
+          <!-- Display uploaded file or input image  -->
           <div 
             v-if="uploadedFile || imageFromFilename || searchingProductName" 
             class="mt-6 text-gray-800 transition-all duration-500 ease-in-out"
@@ -191,9 +205,10 @@ import LoadingScreen from "./components/LoadingScreen.vue";
 import NotificationToast from "./components/NotificationToast.vue";
 import ThemeToggle from "./components/ThemeToggle.vue";
 import ProductFilters from "./components/ProductFilters.vue";
+import ColorPickerFilter from "./components/ColorPickerFilter.vue"; // Import the new component
 import bgImage from "@/assets/bg1.jpg";
 
-
+// Create utils/colorUtils.js file with the color similarity functions
 export default {
   components: {
     FileUpload,
@@ -205,35 +220,9 @@ export default {
     LoadingScreen,
     NotificationToast,
     ThemeToggle,
-    ProductFilters
+    ProductFilters,
+    ColorPickerFilter // Register the new component
   },
-/*************  ✨ Codeium Command ⭐  *************/
-  /**
-   * The component's data.
-   * @typedef {Object} Data
-   * @property {string} backendUrl - The URL of the backend server
-   * @property {string|File} uploadedFile - The currently uploaded file
-   * @property {string} imageFromFilename - The image URL based on the filename entered by the user
-   * @property {Array<Object>} recommendations - The list of recommended products
-   * @property {Array<Object>} filteredRecommendations - The filtered list of recommended products
-   * @property {Array<Object>} originalRecommendations - The original list of recommended products (before filtering)
-   * @property {string} bgImage - The background image URL
-   * @property {string} sortCriteria - The current sort criteria
-   * @property {Array<string>} productTypeFilter - The current product type filters
-   * @property {boolean} isCropping - Whether the image cropper is currently active
-   * @property {File} activeFile - The currently active file (after cropping)
-   * @property {boolean} isLoaded - Whether the recommendations have been loaded
-   * @property {boolean} displayImageLoaded - Whether the display image has been loaded
-   * @property {string} titleHighlightWidth - The width of the title highlight
-   * @property {IntersectionObserver} observer - The IntersectionObserver instance
-   * @property {string} searchingProductName - The current product name being searched for
-   * @property {string} lastSearchedFilename - The last searched filename
-   * @property {boolean} isLoading - Whether the component is currently loading
-   * @property {string} loadingMessage - The loading message
-   * @property {{show: boolean, type: string, message: string, title: string}} notification - The notification object
-   * @property {number} _filterUpdateTimer - The timer ID for the filter update debounce
-   */
-/******  ae31038c-4dc4-464b-89c0-a77a7238bc0b  *******/
   data() {
     return {
       backendUrl: BACKEND_URL, 
@@ -245,6 +234,8 @@ export default {
       bgImage,
       sortCriteria: 'similarity',
       productTypeFilter: [], 
+      colorFilter: null,
+      colorFilterThreshold: 15, 
       isCropping: false,
       activeFile: null,
       isLoaded: false,
@@ -342,12 +333,115 @@ export default {
           );
         }
         
+        // Apply color filter if selected
+        if (this.colorFilter) {
+          filtered = this.filterByColorSimilarity(
+            filtered, 
+            this.colorFilter, 
+            this.colorFilterThreshold
+          );
+        }
+        
         // Update filtered recommendations
         this.filteredRecommendations = filtered;
         
         // Apply sorting
         this.sortRecommendations();
       }, 10);
+    },
+    
+    // Handle color filter change from the ColorPickerFilter component
+    handleColorFilterChange(colorData) {
+      if (colorData === null) {
+        // Clear color filter
+        this.colorFilter = null;
+      } else {
+        // Set color filter and threshold
+        this.colorFilter = colorData.color;
+        this.colorFilterThreshold = colorData.threshold;
+      }
+      
+      // Apply filters
+      this.applyFilters();
+    },
+    
+    // Filter recommendations by color similarity
+    filterByColorSimilarity(recommendations, targetColor, threshold) {
+      if (!targetColor || !recommendations || recommendations.length === 0) {
+        return recommendations;
+      }
+      
+      return recommendations.filter(rec => {
+        // Get the color value from the recommendation
+        const recColorValue = rec.color_code || rec.Color_Code || rec.color || rec.Color;
+        if (!recColorValue) return true; // If no color in recommendation, include it
+        
+        // Parse color values
+        const recColor = this.parseColor(recColorValue);
+        if (!recColor) return true; // If can't parse the color, include it
+        
+        // Calculate color distance and check if colors are similar
+        return this.areColorsSimilar(targetColor, recColor, threshold);
+      });
+    },
+    
+    // Parse different color formats
+    parseColor(colorValue) {
+      if (!colorValue) return null;
+      
+      // Handle hex color
+      if (typeof colorValue === 'string' && colorValue.startsWith('#')) {
+        return this.hexToRgb(colorValue);
+      }
+      
+      // Handle RGB string like "rgb(255, 0, 0)" or "255, 0, 0"
+      if (typeof colorValue === 'string') {
+        const parts = colorValue.replace(/[^\d,]/g, '').split(',');
+        if (parts.length >= 3) {
+          return {
+            r: parseInt(parts[0].trim()),
+            g: parseInt(parts[1].trim()),
+            b: parseInt(parts[2].trim())
+          };
+        }
+      }
+      
+      // Handle RGB object {r, g, b}
+      if (typeof colorValue === 'object' && 'r' in colorValue && 'g' in colorValue && 'b' in colorValue) {
+        return colorValue;
+      }
+      
+      return null;
+    },
+    
+    // Convert hex to RGB
+    hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null;
+    },
+    
+    // Calculate Delta E color difference (simplified)
+    colorDistance(color1, color2) {
+      // Simple Euclidean distance in RGB space
+      return Math.sqrt(
+        Math.pow(color1.r - color2.r, 2) +
+        Math.pow(color1.g - color2.g, 2) +
+        Math.pow(color1.b - color2.b, 2)
+      );
+    },
+    
+    // Check if colors are similar based on threshold
+    areColorsSimilar(color1, color2, threshold) {
+      // Maximum RGB distance is 441.67 (sqrt(255^2 * 3))
+      const maxDistance = 441.67;
+      // Convert threshold percentage to actual distance
+      const distanceThreshold = (threshold / 100) * maxDistance;
+      
+      return this.colorDistance(color1, color2) <= distanceThreshold;
     },
     
     // Image loaded handler
@@ -452,6 +546,7 @@ export default {
         
         // Reset product type filter when new recommendations come in
         this.productTypeFilter = [];
+        this.colorFilter = null; // Reset color filter as well
       }, 200);
     },
     
@@ -595,7 +690,6 @@ export default {
       }
     },
     
-
     sortRecommendations() {
       // Clear any pending updates
       clearTimeout(this._filterUpdateTimer);
@@ -634,6 +728,16 @@ export default {
     productTypeFilter: {
       handler() {
         // Debounce the filter application
+        clearTimeout(this._filterUpdateTimer);
+        this._filterUpdateTimer = setTimeout(() => {
+          this.applyFilters();
+        }, 10);
+      },
+      deep: true
+    },
+    // Watch for changes to the color filter
+    colorFilter: {
+      handler() {
         clearTimeout(this._filterUpdateTimer);
         this._filterUpdateTimer = setTimeout(() => {
           this.applyFilters();
@@ -720,13 +824,44 @@ export default {
   line-height: 1.2;
 }
 
-/* Responsive adjustments */
+.color-picker-button {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: 8px;
+  height: 38px; /* Match the height of your other dropdowns */
+}
+
+.color-picker-button button {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fix for the ProductFilters component layout */
+.filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Provides consistent spacing between elements */
+}
+
+/* Ensure the dropdowns have consistent height */
+.filter-dropdown button,
+.product-line-dropdown button,
+.similarity-dropdown button {
+  height: 38px;
+}
+
+/* For mobile responsiveness */
 @media (max-width: 768px) {
-  .dropdown-portal {
-    width: calc(100vw - 40px) !important;
-    max-width: 350px;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
+  .filter-controls {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  
+  .color-picker-button {
+    margin-top: 4px;
   }
 }
+
 </style>
