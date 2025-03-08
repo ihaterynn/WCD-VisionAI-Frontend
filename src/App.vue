@@ -568,96 +568,135 @@ export default {
     },
     
     fetchRecommendationsByFilename(filename) {
-      const uppercaseFilename = filename.toUpperCase();
-      this.uploadedFile = null;
-      this.displayImageLoaded = false;
-      this.lastSearchedFilename = filename;
-      
-      this.isLoading = true;
-      this.loadingMessage = 'Fetching recommendations...';
-      
-      axios
-        .post(`${this.backendUrl}/recommendations/filename`, { filename: uppercaseFilename })
-        .then((response) => {
-          console.log("API Response received");
-          
-          // Log all fields in response
-          this.logObjectFields(response.data, "Response data");
-          
-          // Try to find the image URL in different possible locations
-          let imageUrl = null;
-          
-          // Check if image_url is directly in the response
-          if (response.data.image_url) {
-            console.log("Found image_url directly in response:", response.data.image_url);
-            imageUrl = response.data.image_url;
-          }
-          // Check for image in first recommendation
-          else if (response.data.recommendations && response.data.recommendations.length > 0) {
-            const firstRec = response.data.recommendations[0];
-            this.logObjectFields(firstRec, "First recommendation");
-            
-            // Check for common image field names
-            const possibleImageFields = ['Image_1', 'image_url', 'image', 'imageUrl', 'img', 'picture', 'photo'];
-            
-            for (const field of possibleImageFields) {
-              if (firstRec[field]) {
-                console.log(`Found image in field: ${field} = ${firstRec[field]}`);
-                imageUrl = firstRec[field];
-                break;
-              }
-            }
-            
-            // If still not found, try to identify potential image fields
-            if (!imageUrl) {
-              console.log("Searching for potential image fields in recommendation:");
-              Object.keys(firstRec).forEach(key => {
-                const value = firstRec[key];
-                if (typeof value === 'string' && 
-                    (key.toLowerCase().includes('image') || 
-                     key.toLowerCase().includes('img') || 
-                     key.toLowerCase().includes('pic') ||
-                     (value.toLowerCase && (
-                       value.toLowerCase().includes('.jpg') || 
-                       value.toLowerCase().includes('.png') || 
-                       value.toLowerCase().includes('.jpeg'))))) {
-                  console.log(`Potential image field: ${key} = ${value}`);
-                  // Use the first one found as a last resort
-                  if (!imageUrl) {
-                    imageUrl = value;
-                    console.log(`Using ${key} as image URL`);
-                  }
-                }
-              });
-            }
-          }
-          
-          // If an image URL was found, use it
-          if (imageUrl) {
-            this.imageFromFilename = this.getFullImageUrl(imageUrl);
-            console.log("Set image URL to:", this.imageFromFilename);
-          } else {
-            console.log("No image URL found in response");
-          }
-          
-          // Update recommendations if present
-          if (response.data.recommendations) {
-            this.setRecommendations(response.data.recommendations);
-            
-            // Hide loading and show success notification
-            this.isLoading = false;
-            this.showNotification('success', 'Success!', `Found ${this.recommendations.length} recommendations for ${filename}`);
-          } else {
-            this.isLoading = false;
-            this.showNotification('warning', 'Warning', "No recommendations found for this product.");
-          }
-        })
-        .catch((error) => {
-          console.error("API Error:", error);
-          this.isLoading = false;
-          this.showNotification('error', 'Error', "The filename does not exist or is not available.");
-        });
+  const uppercaseFilename = filename.toUpperCase();
+  this.uploadedFile = null;
+  this.displayImageLoaded = false;
+  this.lastSearchedFilename = filename;
+  
+  this.isLoading = true;
+  this.loadingMessage = 'Fetching recommendations...';
+  
+  // Log the backend URL being used for debugging
+  console.log(`Making API request to: ${this.backendUrl}/recommendations/filename`);
+  
+  // Configure axios with explicit CORS headers
+  const config = {
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
     },
+    withCredentials: false  // Important for CORS requests
+  };
+  
+  // Make the POST request with proper configuration
+  axios.post(
+    `${this.backendUrl}/recommendations/filename`, 
+    { filename: uppercaseFilename },
+    config
+  )
+  .then((response) => {
+    console.log("API Response received", response.status);
+    
+    // Log all fields in response
+    this.logObjectFields(response.data, "Response data");
+    
+    // Try to find the image URL in different possible locations
+    let imageUrl = null;
+    
+    // Check if image_url is directly in the response
+    if (response.data.image_url) {
+      console.log("Found image_url directly in response:", response.data.image_url);
+      imageUrl = response.data.image_url;
+    }
+    // Check for image in first recommendation
+    else if (response.data.recommendations && response.data.recommendations.length > 0) {
+      const firstRec = response.data.recommendations[0];
+      this.logObjectFields(firstRec, "First recommendation");
+      
+      // Check for common image field names
+      const possibleImageFields = ['Image_1', 'image_url', 'image', 'imageUrl', 'img', 'picture', 'photo'];
+      
+      for (const field of possibleImageFields) {
+        if (firstRec[field]) {
+          console.log(`Found image in field: ${field} = ${firstRec[field]}`);
+          imageUrl = firstRec[field];
+          break;
+        }
+      }
+      
+      // If still not found, try to identify potential image fields
+      if (!imageUrl) {
+        console.log("Searching for potential image fields in recommendation:");
+        Object.keys(firstRec).forEach(key => {
+          const value = firstRec[key];
+          if (typeof value === 'string' && 
+              (key.toLowerCase().includes('image') || 
+               key.toLowerCase().includes('img') || 
+               key.toLowerCase().includes('pic') ||
+               (value.toLowerCase && (
+                 value.toLowerCase().includes('.jpg') || 
+                 value.toLowerCase().includes('.png') || 
+                 value.toLowerCase().includes('.jpeg'))))) {
+            console.log(`Potential image field: ${key} = ${value}`);
+            // Use the first one found as a last resort
+            if (!imageUrl) {
+              imageUrl = value;
+              console.log(`Using ${key} as image URL`);
+            }
+          }
+        });
+      }
+    }
+    
+    // If an image URL was found, use it
+    if (imageUrl) {
+      this.imageFromFilename = this.getFullImageUrl(imageUrl);
+      console.log("Set image URL to:", this.imageFromFilename);
+    } else {
+      console.log("No image URL found in response");
+    }
+    
+    // Update recommendations if present
+    if (response.data.recommendations) {
+      this.setRecommendations(response.data.recommendations);
+      
+      // Hide loading and show success notification
+      this.isLoading = false;
+      this.showNotification('success', 'Success!', `Found ${this.recommendations.length} recommendations for ${filename}`);
+    } else {
+      this.isLoading = false;
+      this.showNotification('warning', 'Warning', "No recommendations found for this product.");
+    }
+  })
+  .catch((error) => {
+    console.error("API Error:", error);
+    
+    // Detailed error logging
+    if (error.response) {
+      console.error("Response data:", error.response.data);
+      console.error("Response status:", error.response.status);
+      console.error("Response headers:", error.response.headers);
+    } else if (error.request) {
+      console.error("No response received:", error.request);
+    } else {
+      console.error("Error message:", error.message);
+    }
+    
+    this.isLoading = false;
+    
+    // Show appropriate error message
+    if (error.response && error.response.status === 405) {
+      this.showNotification('error', 'Method Not Allowed', 
+        "The server doesn't allow this request method. Please check the API configuration.");
+    } else if (error.response && error.response.status === 404) {
+      this.showNotification('error', 'Not Found', 
+        "The product with this code doesn't exist in the database.");
+    } else {
+      this.showNotification('error', 'Error', 
+        "Failed to fetch recommendations. Please try again later.");
+    }
+  });
+},
     
     showNotification(type, title, message) {
       // First clear any existing notification to ensure state is clean

@@ -10,29 +10,7 @@
     }
   ],
   "rewrites": [
-    { 
-      "source": "/api/recommendations/:path*", 
-      "destination": "http://194.31.53.238:8080/recommendations/:path*"
-    },
-    { 
-      "source": "/api/recommendations/filename", 
-      "destination": "http://194.31.53.238:8080/recommendations/filename"
-    },
-    { 
-      "source": "/api/dataset_image", 
-      "destination": "http://194.31.53.238:8080/dataset_image"
-    },
-    { 
-      "source": "/api/health", 
-      "destination": "http://194.31.53.238:8080/health"
-    },
-    { 
-      "source": "/api/proxy-image", 
-      "destination": "http://194.31.53.238:8080/proxy-image"
-    },
-    { 
-      "source": "/(.*)", 
-      "destination": "/index.html"
-    }
+    { "source": "/api/(.*)", "destination": "http://194.31.53.238:8080/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
