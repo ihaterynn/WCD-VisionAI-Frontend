@@ -293,13 +293,28 @@ export default {
     }
   },
   mounted() {
-    setTimeout(() => {
-      this.isLoaded = true;
-    }, 300);
-    
-    this.setupIntersectionObserver();
-    window.addEventListener('scroll', this.handleScroll);
-  },
+  setTimeout(() => {
+    this.isLoaded = true;
+  }, 300);
+  
+  this.setupIntersectionObserver();
+  window.addEventListener('scroll', this.handleScroll);
+  
+  // Add backend connectivity test
+  console.log("Configured backend URL:", this.backendUrl);
+  
+  // Test connectivity to the backend
+  fetch(`${this.backendUrl}/health`)
+    .then(response => response.json())
+    .then(data => {
+      console.log("Backend health check:", data);
+      this.showNotification('info', 'Backend Connected', 'Successfully connected to backend API');
+    })
+    .catch(error => {
+      console.error("Backend health check failed:", error);
+      this.showNotification('error', 'Backend Connection Failed', 'Could not connect to backend API');
+    });
+},
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll);
     
