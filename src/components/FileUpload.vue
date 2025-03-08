@@ -70,6 +70,10 @@ export default {
       error: null,
     };
   },
+  mounted() {
+    // Log the backendUrl for debugging
+    console.log("FileUpload component mounted with backendUrl:", this.backendUrl);
+  },
   methods: {
     handleFileUpload(event) {
       this.file = event.target.files[0];
@@ -92,6 +96,10 @@ export default {
       const formData = new FormData();
       formData.append("file", fileToUpload);
       
+      // Log the actual URL being used for debugging
+      console.log("Backend URL for file upload:", this.backendUrl);
+      console.log(`Making file upload request to: ${this.backendUrl}/recommendations/`);
+      
       try {
         const response = await axios.post(
           `${this.backendUrl}/recommendations/`,
@@ -100,8 +108,11 @@ export default {
             headers: {
               "Content-Type": "multipart/form-data",
             },
+            withCredentials: false // Important for CORS requests
           }
         );
+        
+        console.log("Upload response received:", response.status);
         
         if (response.data.recommendations && response.data.recommendations.length > 0) {
           this.$emit("recommendations-received", response.data.recommendations);
@@ -111,15 +122,39 @@ export default {
           this.$emit("notify", "warning", "No Results", "No recommendations were found for this image.");
         }
       } catch (err) {
-        console.error(err);
-        this.error = err.response?.data?.error || "Error during upload.";
-        this.$emit("notify", "error", "Error", this.error);
+        console.error("Upload error:", err);
+        
+        // Enhanced error logging
+        if (err.response) {
+          console.error("Response data:", err.response.data);
+          console.error("Response status:", err.response.status);
+          console.error("Response headers:", err.response.headers);
+        } else if (err.request) {
+          console.error("No response received:", err.request);
+        } else {
+          console.error("Error message:", err.message);
+        }
+        
+        this.error = err.response?.data?.detail || err.response?.data?.error || "Error during upload.";
+        this.$emit("notify", "error", "Upload Failed", this.error);
       } finally {
         this.isSubmitting = false;
         // Hide loading screen
         this.$emit("loading", false);
       }
     },
+    // Helper method to test backend connectivity
+    async testBackendConnection() {
+      console.log("Testing connection to:", this.backendUrl);
+      try {
+        const response = await axios.get(`${this.backendUrl}/health`);
+        console.log("Backend health check successful:", response.data);
+        return true;
+      } catch (error) {
+        console.error("Backend health check failed:", error);
+        return false;
+      }
+    }
   },
 };
 </script>
