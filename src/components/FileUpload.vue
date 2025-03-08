@@ -79,70 +79,78 @@ export default {
       this.file = event.target.files[0];
       this.$emit("file-uploaded", this.file); // notify parent of the uploaded file
     },
-    async submitForm() {
-      // use the activeFile from props otherwise fall back to the originally uploaded file
-      const fileToUpload = this.activeFile ? this.activeFile : this.file;
-      if (!fileToUpload) {
-        this.error = "Please select a file.";
-        return;
+    // Inside FileUpload.vue, update the submitForm method
+async submitForm() {
+  // use the activeFile from props otherwise fall back to the originally uploaded file
+  const fileToUpload = this.activeFile ? this.activeFile : this.file;
+  if (!fileToUpload) {
+    this.error = "Please select a file.";
+    return;
+  }
+  
+  this.isSubmitting = true;
+  this.error = null;
+  
+  // Show loading screen
+  this.$emit("loading", true, "Processing image...");
+  
+  const formData = new FormData();
+  formData.append("file", fileToUpload);
+  
+  // Log the actual backend URL being used - using the full URL from props
+  console.log("Backend URL for file upload:", this.backendUrl);
+  console.log(`Making file upload request to: ${this.backendUrl}/recommendations/`);
+  
+  try {
+    // Check if backendUrl is defined and not a relative path
+    if (!this.backendUrl || this.backendUrl === '/api') {
+      throw new Error("Invalid backend URL. Please check your configuration.");
+    }
+    
+    const response = await axios.post(
+      `${this.backendUrl}/recommendations/`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        withCredentials: false // Important for CORS
       }
-      
-      this.isSubmitting = true;
-      this.error = null;
-      
-      // Show loading screen
-      this.$emit("loading", true, "Processing image...");
-      
-      const formData = new FormData();
-      formData.append("file", fileToUpload);
-      
-      // Log the actual URL being used for debugging
-      console.log("Backend URL for file upload:", this.backendUrl);
-      console.log(`Making file upload request to: ${this.backendUrl}/recommendations/`);
-      
-      try {
-        const response = await axios.post(
-          `${this.backendUrl}/recommendations/`,
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-            withCredentials: false // Important for CORS requests
-          }
-        );
-        
-        console.log("Upload response received:", response.status);
-        
-        if (response.data.recommendations && response.data.recommendations.length > 0) {
-          this.$emit("recommendations-received", response.data.recommendations);
-          this.$emit("notify", "success", "Success!", `Found ${response.data.recommendations.length} recommendation(s)`);
-        } else {
-          this.error = "No recommendations found for this image.";
-          this.$emit("notify", "warning", "No Results", "No recommendations were found for this image.");
-        }
-      } catch (err) {
-        console.error("Upload error:", err);
-        
-        // Enhanced error logging
-        if (err.response) {
-          console.error("Response data:", err.response.data);
-          console.error("Response status:", err.response.status);
-          console.error("Response headers:", err.response.headers);
-        } else if (err.request) {
-          console.error("No response received:", err.request);
-        } else {
-          console.error("Error message:", err.message);
-        }
-        
-        this.error = err.response?.data?.detail || err.response?.data?.error || "Error during upload.";
-        this.$emit("notify", "error", "Upload Failed", this.error);
-      } finally {
-        this.isSubmitting = false;
-        // Hide loading screen
-        this.$emit("loading", false);
-      }
-    },
+    );
+    
+    console.log("Upload response received:", response.status);
+    
+    if (response.data.recommendations && response.data.recommendations.length > 0) {
+      this.$emit("recommendations-received", response.data.recommendations);
+      this.$emit("notify", "success", "Success!", `Found ${response.data.recommendations.length} recommendation(s)`);
+    } else {
+      this.error = "No recommendations found for this image.";
+      this.$emit("notify", "warning", "No Results", "No recommendations were found for this image.");
+    }
+  } catch (err) {
+    console.error("Upload error:", err);
+    
+    // Enhanced error logging
+    if (err.response) {
+      console.error("Response data:", err.response.data);
+      console.error("Response status:", err.response.status);
+      console.error("Response headers:", err.response.headers);
+    } else if (err.request) {
+      console.error("No response received:", err.request);
+    } else {
+      console.error("Error message:", err.message);
+    }
+    
+    this.error = err.response?.data?.detail || err.response?.data?.error || 
+                  err.message || "Error during upload.";
+    
+    this.$emit("notify", "error", "Upload Failed", this.error);
+  } finally {
+    this.isSubmitting = false;
+    // Hide loading screen
+    this.$emit("loading", false);
+  }
+},
     // Helper method to test backend connectivity
     async testBackendConnection() {
       console.log("Testing connection to:", this.backendUrl);
