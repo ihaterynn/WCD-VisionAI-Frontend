@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-    const targetUrl = 'https://194.31.53.238:8080' + req.url.replace('/api', '');
+    const targetUrl = 'http://194.31.53.238:8080' + req.url.replace('/api', '');
     
     try {
       const fetchOptions = {
