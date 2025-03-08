@@ -10,7 +10,7 @@
     }
   ],
   "rewrites": [
-    { "source": "/api/:path*", "destination": "http://194.31.53.238:8080/:path*" }
+  { "source": "/api/recommendations/:path*", "destination": "http://194.31.53.238:8080/recommendations/:path*" }
   ],
   "routes": [
     {
