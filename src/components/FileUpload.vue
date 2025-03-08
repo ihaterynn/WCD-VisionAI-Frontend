@@ -71,9 +71,25 @@ export default {
     };
   },
   mounted() {
-    // Log the backendUrl for debugging
-    console.log("FileUpload component mounted with backendUrl:", this.backendUrl);
-  },
+  // Check if backendUrl is properly set up
+  if (!this.backendUrl || this.backendUrl === '/api') {
+    console.error("FileUpload component received invalid backendUrl:", this.backendUrl);
+    this.$emit("notify", "error", "Configuration Error", 
+      "Backend URL is not properly configured. Please check your environment variables.");
+  } else {
+    console.log("FileUpload component mounted with valid backendUrl:", this.backendUrl);
+    
+    // Test connectivity to the backend
+    fetch(`${this.backendUrl}/health`)
+      .then(response => response.json())
+      .then(data => {
+        console.log("FileUpload component health check:", data);
+      })
+      .catch(error => {
+        console.error("FileUpload component health check failed:", error);
+      });
+  }
+},
   methods: {
     handleFileUpload(event) {
       this.file = event.target.files[0];
