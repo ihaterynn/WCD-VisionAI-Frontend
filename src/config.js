@@ -1,24 +1,12 @@
-export default async function handler(req, res) {
-    const targetUrl = 'https://wcdvision.ddns.net' + req.url.replace('/api', '');
-    
-    try {
-      const fetchOptions = {
-        method: req.method,
-        headers: {
-          'Content-Type': req.headers['content-type'] || 'application/json'
-        }
-      };
-      
-      // Add body data for POST requests
-      if (req.method === 'POST' && req.body) {
-        fetchOptions.body = JSON.stringify(req.body);
-      }
-      
-      const response = await fetch(targetUrl, fetchOptions);
-      const data = await response.json();
-      
-      res.status(response.status).json(data);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  }
+// config.js
+// Determine if running locally based on the hostname
+const isLocalhost = typeof window !== "undefined" && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+// Export the appropriate backend URL
+export const BACKEND_URL = isLocalhost 
+  ? "http://127.0.0.1:8050"  // Local development
+  : "https://wcdvision.ddns.net";  // Production
+
+// Log which URL is being used (for debugging)
+console.log(`Using backend URL: ${BACKEND_URL}`);
