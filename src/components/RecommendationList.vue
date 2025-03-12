@@ -92,7 +92,7 @@ export default {
     },
     backendUrl: {
       type: String,
-      default: () => 'http://127.0.0.1:8080'
+      default: () => 'http://127.0.0.1:8050'
     },
     isLoaded: {
       type: Boolean,
